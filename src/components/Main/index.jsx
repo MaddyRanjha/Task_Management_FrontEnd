@@ -20,10 +20,10 @@ function Main() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/auth/${user.userId}`)
+      .get(`https://task-management-app-backend.onrender.com/api/auth/${user.userId}`)
       .then((res) => setUserDetails(res.data.data));
     axios
-      .get(`http://localhost:8080/api/task/${user.userId}`)
+      .get(`https://task-management-app-backend.onrender.com/api/task/${user.userId}`)
       .then((res) => setTaskDetails(res.data.data));
   }, []);
   console.log(userDetails._id);
