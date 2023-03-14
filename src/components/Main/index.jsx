@@ -7,50 +7,55 @@ import { MdDelete } from 'react-icons/md';
 import './style.css';
 
 function Main() {
-  const [reminderMsg, setReminderMsg] = useState('');
-  const [remindAt, setRemindAt] = useState();
+  const [name, setName] =useState('');
+  const [desc, setDesc] = useState('');
+  const [date, setDate] = useState();
+  const [noti, setNoti] = useState(false);
+  const [notification, setNotification] = useState('SMS');
+  const [frequency, setFrequency] = useState('daily');
+  
   const [userDetails, setUserDetails] = useState();
   const [taskDetails, setTaskDetails] = useState([]);
   const [notificationSetting, setNotificationSetting] = useState(false);
 
 
   const data = localStorage.getItem('token');
-  const user = JSON.parse(data);
-  console.log(user);
+  const userDet = JSON.parse(data);
+  const user= userDet.userId;
 
   useEffect(() => {
     axios
-      .get(`https://task-management-app-backend.onrender.com/api/auth/${user.userId}`)
+      .get(`http://localhost:8080/api/auth/${userDet.userId}`)
       .then((res) => setUserDetails(res.data.data));
     axios
-      .get(`https://task-management-app-backend.onrender.com/api/task/${user.userId}`)
+      .get(`http://localhost:8080/api/task/${userDet.userId}`)
       .then((res) => setTaskDetails(res.data.data));
   }, []);
   // console.log(userDetails._id);
   // console.log(taskDetails);
 
-  const [taskData, setTaskData] = useState({
-    user: "",
-		name: "",
-		desc: "",
-		date: Date.now(),
-    noti:"false",
-		notification: "SMS",
-    frequency:"daily",
-	});
+  // const [taskData, setTaskData] = useState({
+  //   user: "",
+	// 	name: "",
+	// 	desc: "",
+	// 	date: Date.now(),
+  //   noti:"false",
+	// 	notification: "SMS",
+  //   frequency:"daily",
+	// });
 
-  const addReminder = () => {
-    // axios.post("https://todo-backend-aq5e.onrender.com/addReminder", {reminderMsg, remindAt})
-    // .then(res => setReminderList(res.data));
-    // console.log(reminderList);
+  const addTask = () => {
+    axios.post("http://localhost:8080/api/task", {user, name, desc, date, noti, notification, frequency})
+    .then(res => setTaskDetails(res.data));
+    // console.log(taskDetails);
     // setReminderMsg("");
     // setRemindAt("");
   };
-  const deleteReminder = (id) => {
-    // axios.post("https://todo-backend-aq5e.onrender.com/deleteReminder",{id})
-    // .then(res => setReminderList(res.data));
+  const deleteTask = (id) => {
+    axios.delete("http://localhost:8080/api/task/id")
+    .then(res => setTaskDetails(res.data));
   };
-  const setNotification = (id) => {
+  const setNotificationChanges = (id) => {
     setNotificationSetting(!notificationSetting);
   };
   const handleLogout = () => {
@@ -80,13 +85,19 @@ function Main() {
           <h1>Manage Task 🙋‍♂️</h1>
           <input
             type="text"
-            placeholder="Reminder Notes Here..."
-            value={reminderMsg}
-            onChange={(e) => setReminderMsg(e.target.value)}
+            placeholder="Enter Task Name Here..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          ></input>
+          <input
+            type="text"
+            placeholder="Enter Task Description Here..."
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
           ></input>
           <DateTimePicker
-            value={remindAt}
-            onChange={setRemindAt}
+            value={date}
+            onChange={setDate}
             minDate={new Date()}
             minutePlaceholder="mm"
             hourPlaceholder="hh"
@@ -94,7 +105,25 @@ function Main() {
             monthPlaceholder="MM"
             yearPlaceholder="YYYY"
           ></DateTimePicker>
-          <div className="button" onClick={addReminder}>
+          <div className='notification_selector'>
+                    <span class="dropdown">
+                      <button class="dropbtn">Frequency</button>
+                      <div class="dropdown-content">
+                        <a href="www.abc.com">Daily</a>
+                        <a href="www.abc.com">Weekly</a>
+                        <a href="www.abc.com">Monthly</a>
+                      </div>
+                    </span>
+                    <span class="dropdown">
+                      <button class="dropbtn">Type Of Notification</button>
+                      <div class="dropdown-content">
+                        <a href="www.abc.com">SMS</a>
+                        <a href="www.abc.com">Email</a>
+                        <a href="www.abc.com">Push Notification</a>
+                      </div>
+                    </span>
+                  </div>
+          <div className="button" onClick={addTask}>
             Add Task
           </div>
         </div>
@@ -106,13 +135,13 @@ function Main() {
                 <h4>{a.desc}</h4>
                 <p>Remind Me at: {a.date}</p>
                 <div className="features">
-                  <span className="bellIcon" onClick={setNotification}>
+                  <span className="bellIcon" onClick={setNotificationChanges}>
                     <FaBell />
                   </span>
                   <span>
                     <FaPencilAlt />
                   </span>
-                  <span>
+                  <span className="deleteIcon" onClick={deleteTask(a._id)}>
                     <MdDelete />
                   </span>
                 </div>
