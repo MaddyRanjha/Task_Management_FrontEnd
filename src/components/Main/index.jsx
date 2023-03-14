@@ -25,10 +25,10 @@ function Main() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8080/api/auth/${userDet.userId}`)
+      .get(`https://task-management-app-backend.onrender.com/api/auth/${userDet.userId}`)
       .then((res) => setUserDetails(res.data.data));
     axios
-      .get(`http://localhost:8080/api/task/${userDet.userId}`)
+      .get(`https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`)
       .then((res) => setTaskDetails(res.data.data));
   }, []);
   // console.log(userDetails._id);
@@ -45,14 +45,14 @@ function Main() {
 	// });
 
   const addTask = () => {
-    axios.post("http://localhost:8080/api/task", {user, name, desc, date, noti, notification, frequency})
+    axios.post("https://task-management-app-backend.onrender.com/api/task", {user, name, desc, date, noti, notification, frequency})
     .then(res => setTaskDetails(res.data));
     // console.log(taskDetails);
     // setReminderMsg("");
     // setRemindAt("");
   };
   const deleteTask = (id) => {
-    axios.delete("http://localhost:8080/api/task/id")
+    axios.delete("https://task-management-app-backend.onrender.com/api/task/id")
     .then(res => setTaskDetails(res.data));
   };
   const setNotificationChanges = (id) => {
