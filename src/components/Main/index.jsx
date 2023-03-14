@@ -26,7 +26,7 @@ function Main() {
       .get(`https://task-management-app-backend.onrender.com/api/task/${user.userId}`)
       .then((res) => setTaskDetails(res.data.data));
   }, []);
-  console.log(userDetails._id);
+  // console.log(userDetails._id);
   // console.log(taskDetails);
 
   const [taskData, setTaskData] = useState({
