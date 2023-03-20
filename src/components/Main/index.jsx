@@ -7,53 +7,77 @@ import { MdDelete } from 'react-icons/md';
 import './style.css';
 
 function Main() {
-  const [name, setName] =useState('');
+  const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [date, setDate] = useState();
   const [noti, setNoti] = useState(false);
   const [notification, setNotification] = useState('SMS');
   const [frequency, setFrequency] = useState('daily');
   
+
   const [userDetails, setUserDetails] = useState();
   const [taskDetails, setTaskDetails] = useState([]);
   const [notificationSetting, setNotificationSetting] = useState(false);
 
-
   const data = localStorage.getItem('token');
   const userDet = JSON.parse(data);
-  const user= userDet.userId;
+  const user = userDet.userId;
+  console.log(user);
 
   useEffect(() => {
-    axios
-      .get(`https://task-management-app-backend.onrender.com/api/auth/${userDet.userId}`)
-      .then((res) => setUserDetails(res.data.data));
-    axios
-      .get(`https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`)
-      .then((res) => setTaskDetails(res.data.data));
+    const fetchUserAndTaskDetails = async () => {
+      try {
+        const userDetailsResponse = await axios.get(
+          `https://task-management-app-backend.onrender.com/api/auth/${userDet.userId}`
+        );
+        setUserDetails(userDetailsResponse.data.data);
+
+        const taskDetailsResponse = await axios.get(
+          `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+        );
+        setTaskDetails(taskDetailsResponse.data.data);
+      } catch (error) {
+        console.error(error);
+      
+      }
+    };
+
+    fetchUserAndTaskDetails();
   }, []);
-  // console.log(userDetails._id);
-  // console.log(taskDetails);
 
-  // const [taskData, setTaskData] = useState({
-  //   user: "",
-	// 	name: "",
-	// 	desc: "",
-	// 	date: Date.now(),
-  //   noti:"false",
-	// 	notification: "SMS",
-  //   frequency:"daily",
-	// });
+  console.log(taskDetails)
 
-  const addTask = () => {
-    axios.post("https://task-management-app-backend.onrender.com/api/task", {user, name, desc, date, noti, notification, frequency})
-    .then(res => setTaskDetails(res.data));
-    // console.log(taskDetails);
-    // setReminderMsg("");
-    // setRemindAt("");
+  const addTask = async () => {
+    console.log("**")
+    await axios
+      .post('https://task-management-app-backend.onrender.com/api/task', {
+        user,
+        name,
+        desc,
+        date,
+        noti,
+        notification,
+        frequency,
+      })
+      .then((res) => console.log(res));
+      const taskDetailsResponse = await axios.get(
+        `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+      );
+      setTaskDetails(taskDetailsResponse.data.data);
+      setName("");
+      setDesc("");
+      setDate("");
+      alert("Task Added Successfully!!")
   };
-  const deleteTask = (id) => {
-    axios.delete("https://task-management-app-backend.onrender.com/api/task/id")
-    .then(res => setTaskDetails(res.data));
+  const deleteTask = async (id) => {
+    await axios
+      .delete(`https://task-management-app-backend.onrender.com/api/task/${id}`)
+      .then((res) => console.log(res));
+      const taskDetailsResponse = await axios.get(
+        `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+      );
+      setTaskDetails(taskDetailsResponse.data.data);
+      alert("Task Deleted Successfully!!")
   };
   const setNotificationChanges = (id) => {
     setNotificationSetting(!notificationSetting);
@@ -105,74 +129,77 @@ function Main() {
             monthPlaceholder="MM"
             yearPlaceholder="YYYY"
           ></DateTimePicker>
-          <div className='notification_selector'>
-                    <span class="dropdown">
-                      <button class="dropbtn">Frequency</button>
-                      <div class="dropdown-content">
-                        <a href="www.abc.com">Daily</a>
-                        <a href="www.abc.com">Weekly</a>
-                        <a href="www.abc.com">Monthly</a>
-                      </div>
-                    </span>
-                    <span class="dropdown">
-                      <button class="dropbtn">Type Of Notification</button>
-                      <div class="dropdown-content">
-                        <a href="www.abc.com">SMS</a>
-                        <a href="www.abc.com">Email</a>
-                        <a href="www.abc.com">Push Notification</a>
-                      </div>
-                    </span>
-                  </div>
+          <div className="notification_selector">
+            <span className="dropdown">
+              <button className="dropbtn">Frequency</button>
+              <div className="dropdown-content">
+                <a href="www.abc.com">Daily</a>
+                <a href="www.abc.com">Weekly</a>
+                <a href="www.abc.com">Monthly</a>
+              </div>
+            </span>
+            <span className="dropdown">
+              <button className="dropbtn">Type Of Notification</button>
+              <div className="dropdown-content">
+                <a href="www.abc.com">SMS</a>
+                <a href="www.abc.com">Email</a>
+                <a href="www.abc.com">Push Notification</a>
+              </div>
+            </span>
+          </div>
           <div className="button" onClick={addTask}>
             Add Task
           </div>
         </div>
         <div className="homepage_body">
-          {taskDetails.map((a) => {
-            return (
-              <div className="reminder_card">
-                <h2>{a.name}</h2>
-                <h4>{a.desc}</h4>
-                <p>Remind Me at: {a.date}</p>
-                <div className="features">
-                  <span className="bellIcon" onClick={setNotificationChanges}>
-                    <FaBell />
+          {taskDetails.map((task) => (
+           <div className="reminder_card" key={task._id}>
+              <h2>{task.name}</h2>
+              <h4>{task.desc}</h4>
+              <p>Remind Me at: {task.date}</p>
+              <div className="features">
+                <span
+                  className="bellIcon"
+                  onClick={() => setNotificationChanges(task._id)}
+                >
+                  <FaBell />
+                </span>
+                <span className='editBtn'>
+                  <FaPencilAlt />
+                </span>
+                <span
+                  className="deleteIcon"
+                  onClick={() => deleteTask(task._id)}
+                >
+                  <MdDelete />
+                </span>
+              </div>
+              {notificationSetting && (
+                <div>
+                  <h6>Notification Setting</h6>
+                  <span className="dropdown">
+                    <button className="dropbtn">Frequency</button>
+                    <div className="dropdown-content">
+                      <a href="www.abc.com">Daily</a>
+                      <a href="www.abc.com">Weekly</a>
+                      <a href="www.abc.com">Monthly</a>
+                    </div>
                   </span>
-                  <span>
-                    <FaPencilAlt />
-                  </span>
-                  <span className="deleteIcon" onClick={deleteTask(a._id)}>
-                    <MdDelete />
+                  <span className="dropdown">
+                    <button className="dropbtn">Type Of Notification</button>
+                    <div className="dropdown-content">
+                      <a href="www.abc.com">SMS</a>
+                      <a href="www.abc.com">Email</a>
+                      <a href="www.abc.com">Push Notification</a>
+                    </div>
                   </span>
                 </div>
-                {notificationSetting && (
-                  <div>
-                    <h6>Notification Setting</h6>
-                    <span class="dropdown">
-                      <button class="dropbtn">Frequency</button>
-                      <div class="dropdown-content">
-                        <a href="www.abc.com">Daily</a>
-                        <a href="www.abc.com">Weekly</a>
-                        <a href="www.abc.com">Monthly</a>
-                      </div>
-                    </span>
-                    <span class="dropdown">
-                      <button class="dropbtn">Type Of Notification</button>
-                      <div class="dropdown-content">
-                        <a href="www.abc.com">SMS</a>
-                        <a href="www.abc.com">Email</a>
-                        <a href="www.abc.com">Push Notification</a>
-                      </div>
-                    </span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
-
   );
 }
 
