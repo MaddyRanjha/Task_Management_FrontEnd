@@ -1,36 +1,35 @@
 // import { Route, Routes, Navigate } from 'react-router-dom';
-import react, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import DateTimePicker from 'react-datetime-picker';
-import { FaBell, FaPencilAlt } from 'react-icons/fa';
-import { MdDelete } from 'react-icons/md';
 import './style.css';
+import Card from './card';
 
 function Main() {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [date, setDate] = useState();
-  const [noti, setNoti] = useState(false);
+  const editNoti = false;
+  const editTask = false;
   const [notification, setNotification] = useState('SMS');
-  const [frequency, setFrequency] = useState('daily');
-  
+  const [frequency, setFrequency] = useState('Daily');
 
-  const [userDetails, setUserDetails] = useState();
+  // const [userDetails, setUserDetails] = useState();
   const [taskDetails, setTaskDetails] = useState([]);
   const [notificationSetting, setNotificationSetting] = useState(false);
 
   const data = localStorage.getItem('token');
   const userDet = JSON.parse(data);
   const user = userDet.userId;
-  console.log(user);
 
+  // @Fetch All Tasks
   useEffect(() => {
     const fetchUserAndTaskDetails = async () => {
       try {
-        const userDetailsResponse = await axios.get(
-          `https://task-management-app-backend.onrender.com/api/auth/${userDet.userId}`
-        );
-        setUserDetails(userDetailsResponse.data.data);
+        // const userDetailsResponse = await axios.get(
+        //   `http://localhost:8080/api/auth/${userDet.userId}`
+        // );
+        // setUserDetails(userDetailsResponse.data.data);
 
         const taskDetailsResponse = await axios.get(
           `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
@@ -38,50 +37,90 @@ function Main() {
         setTaskDetails(taskDetailsResponse.data.data);
       } catch (error) {
         console.error(error);
-      
       }
     };
 
     fetchUserAndTaskDetails();
   }, []);
 
-  console.log(taskDetails)
-
+  // @Adding a Task
   const addTask = async () => {
-    console.log("**")
+    console.log('**');
     await axios
       .post('https://task-management-app-backend.onrender.com/api/task', {
         user,
         name,
         desc,
         date,
-        noti,
+        editNoti,
+        editTask,
         notification,
         frequency,
       })
       .then((res) => console.log(res));
-      const taskDetailsResponse = await axios.get(
-        `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
-      );
-      setTaskDetails(taskDetailsResponse.data.data);
-      setName("");
-      setDesc("");
-      setDate("");
-      alert("Task Added Successfully!!")
+    const taskDetailsResponse = await axios.get(
+      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+    );
+    setTaskDetails(taskDetailsResponse.data.data);
+    setName('');
+    setDesc('');
+    setDate('');
+    alert('Task Added Successfully!!');
   };
-  const deleteTask = async (id) => {
+
+  // @Delete a Task
+  const deleteTask = async (taskId) => {
     await axios
-      .delete(`https://task-management-app-backend.onrender.com/api/task/${id}`)
+      .delete(`https://task-management-app-backend.onrender.com/api/task/${taskId}`)
       .then((res) => console.log(res));
-      const taskDetailsResponse = await axios.get(
-        `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
-      );
-      setTaskDetails(taskDetailsResponse.data.data);
-      alert("Task Deleted Successfully!!")
+    const taskDetailsResponse = await axios.get(
+      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+    );
+    setTaskDetails(taskDetailsResponse.data.data);
+    console.log(taskId);
+    alert('Task Deleted Successfully!!');
   };
-  const setNotificationChanges = (id) => {
+
+  const setNotificationChanges = (task) => {
+    console.log('Hello');
+    task.editTask = !task.editTask;
+
     setNotificationSetting(!notificationSetting);
   };
+
+  // @Update a Task
+  const updateTask = async (task) => {
+    console.log(
+      `${task.name}  ${task.desc}  ${task.frequency} ${task.notification}`
+    );
+    const user = task.user;
+    const name = task.name;
+    const desc = task.desc;
+    const date = task.date;
+    const notification = task.notification;
+    const frequency = task.frequency;
+    await axios
+      .put(`https://task-management-app-backend.onrender.com/api/task/${task._id}`, {
+        user,
+        name,
+        desc,
+        date,
+        editNoti,
+        editTask,
+        notification,
+        frequency,
+      })
+      .then((res) => console.log(res));
+    const taskDetailsResponse = await axios.get(
+      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+    );
+    setTaskDetails(taskDetailsResponse.data.data);
+    alert('Task Updated Successfully!!');
+    task.editTask = !task.editTask;
+    setNotificationSetting(!notificationSetting);
+  };
+
+  // @LogOut Function
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.reload();
@@ -120,6 +159,7 @@ function Main() {
             onChange={(e) => setDesc(e.target.value)}
           ></input>
           <DateTimePicker
+            className="dateTimePicker"
             value={date}
             onChange={setDate}
             minDate={new Date()}
@@ -130,22 +170,25 @@ function Main() {
             yearPlaceholder="YYYY"
           ></DateTimePicker>
           <div className="notification_selector">
-            <span className="dropdown">
-              <button className="dropbtn">Frequency</button>
-              <div className="dropdown-content">
-                <a href="www.abc.com">Daily</a>
-                <a href="www.abc.com">Weekly</a>
-                <a href="www.abc.com">Monthly</a>
-              </div>
-            </span>
-            <span className="dropdown">
-              <button className="dropbtn">Type Of Notification</button>
-              <div className="dropdown-content">
-                <a href="www.abc.com">SMS</a>
-                <a href="www.abc.com">Email</a>
-                <a href="www.abc.com">Push Notification</a>
-              </div>
-            </span>
+            <select
+              className="dropdown"
+              value={notification}
+              onChange={(event) => setNotification(event.target.value)}
+            >
+              <option value="Daily">Daily</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
+            </select>
+
+            <select
+              className="dropdown"
+              value={frequency}
+              onChange={(event) => setFrequency(event.target.value)}
+            >
+              <option value="SMS">SMS</option>
+              <option value="Email">Email</option>
+              <option value="Push Notification">Push Notification</option>
+            </select>
           </div>
           <div className="button" onClick={addTask}>
             Add Task
@@ -153,49 +196,12 @@ function Main() {
         </div>
         <div className="homepage_body">
           {taskDetails.map((task) => (
-           <div className="reminder_card" key={task._id}>
-              <h2>{task.name}</h2>
-              <h4>{task.desc}</h4>
-              <p>Remind Me at: {task.date}</p>
-              <div className="features">
-                <span
-                  className="bellIcon"
-                  onClick={() => setNotificationChanges(task._id)}
-                >
-                  <FaBell />
-                </span>
-                <span className='editBtn'>
-                  <FaPencilAlt />
-                </span>
-                <span
-                  className="deleteIcon"
-                  onClick={() => deleteTask(task._id)}
-                >
-                  <MdDelete />
-                </span>
-              </div>
-              {notificationSetting && (
-                <div>
-                  <h6>Notification Setting</h6>
-                  <span className="dropdown">
-                    <button className="dropbtn">Frequency</button>
-                    <div className="dropdown-content">
-                      <a href="www.abc.com">Daily</a>
-                      <a href="www.abc.com">Weekly</a>
-                      <a href="www.abc.com">Monthly</a>
-                    </div>
-                  </span>
-                  <span className="dropdown">
-                    <button className="dropbtn">Type Of Notification</button>
-                    <div className="dropdown-content">
-                      <a href="www.abc.com">SMS</a>
-                      <a href="www.abc.com">Email</a>
-                      <a href="www.abc.com">Push Notification</a>
-                    </div>
-                  </span>
-                </div>
-              )}
-            </div>
+            <Card
+              value={task}
+              deleteTask={deleteTask}
+              setNotificationChanges={setNotificationChanges}
+              updateTask={updateTask}
+            />
           ))}
         </div>
       </div>
