@@ -4,6 +4,8 @@ import axios from 'axios';
 import DateTimePicker from 'react-datetime-picker';
 import './style.css';
 import Card from './card';
+import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 
 function Main() {
   const [name, setName] = useState('');
@@ -32,7 +34,7 @@ function Main() {
         // setUserDetails(userDetailsResponse.data.data);
 
         const taskDetailsResponse = await axios.get(
-          `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+          `http://localhost:8080/api/task/${userDet.userId}`
         );
         setTaskDetails(taskDetailsResponse.data.data);
       } catch (error) {
@@ -43,11 +45,24 @@ function Main() {
     fetchUserAndTaskDetails();
   }, []);
 
+
+//   setInterval(() => {
+//     taskDetails.map((task)=>{
+//       if((new Date(task.date) - Date.now()) > 0){
+//         console.log("Fuck You!!")
+
+//       }
+//     })
+    
+// },10000)
+
+
+
   // @Adding a Task
   const addTask = async () => {
     console.log('**');
     await axios
-      .post('https://task-management-app-backend.onrender.com/api/task', {
+      .post('http://localhost:8080/api/task', {
         user,
         name,
         desc,
@@ -59,7 +74,7 @@ function Main() {
       })
       .then((res) => console.log(res));
     const taskDetailsResponse = await axios.get(
-      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+      `http://localhost:8080/api/task/${userDet.userId}`
     );
     setTaskDetails(taskDetailsResponse.data.data);
     setName('');
@@ -71,10 +86,10 @@ function Main() {
   // @Delete a Task
   const deleteTask = async (taskId) => {
     await axios
-      .delete(`https://task-management-app-backend.onrender.com/api/task/${taskId}`)
+      .delete(`http://localhost:8080/api/task/${taskId}`)
       .then((res) => console.log(res));
     const taskDetailsResponse = await axios.get(
-      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+      `http://localhost:8080/api/task/${userDet.userId}`
     );
     setTaskDetails(taskDetailsResponse.data.data);
     console.log(taskId);
@@ -100,7 +115,7 @@ function Main() {
     const notification = task.notification;
     const frequency = task.frequency;
     await axios
-      .put(`https://task-management-app-backend.onrender.com/api/task/${task._id}`, {
+      .put(`http://localhost:8080/api/task/${task._id}`, {
         user,
         name,
         desc,
@@ -112,7 +127,7 @@ function Main() {
       })
       .then((res) => console.log(res));
     const taskDetailsResponse = await axios.get(
-      `https://task-management-app-backend.onrender.com/api/task/${userDet.userId}`
+      `http://localhost:8080/api/task/${userDet.userId}`
     );
     setTaskDetails(taskDetailsResponse.data.data);
     alert('Task Updated Successfully!!');
@@ -125,6 +140,12 @@ function Main() {
     localStorage.removeItem('token');
     window.location.reload();
   };
+
+  function onChange(newDate) {
+    setDate(newDate);
+    
+  }
+  const indianTime = utcToZonedTime(date, 'Asia/Kolkata');
 
   return (
     <div className="App">
@@ -158,7 +179,7 @@ function Main() {
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
           ></input>
-          <DateTimePicker
+          {/* <DateTimePicker
             className="dateTimePicker"
             value={date}
             onChange={setDate}
@@ -168,7 +189,17 @@ function Main() {
             dayPlaceholder="DD"
             monthPlaceholder="MM"
             yearPlaceholder="YYYY"
-          ></DateTimePicker>
+          ></DateTimePicker> */}
+          <DateTimePicker
+            onChange={onChange}
+            value={date}
+            format="dd/MM/yyyy hh:mm a"
+            locale="en-US"
+            minDate={new Date()}
+            maxDate={new Date('2050-12-31')}
+            disabled={false}
+            className="my-datetime-picker"
+          />
           <div className="notification_selector">
             <select
               className="dropdown"
